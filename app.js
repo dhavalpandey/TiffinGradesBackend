@@ -9,11 +9,17 @@ const PORT = process.env.PORT || 5000;
 const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
+const cors = require("cors");
 
 const User = require("./User");
 const connectDB = require("./db");
 connectDB();
 
+app.use(
+  cors({
+    origin: "https://tiffingrades.netlify.app",
+  }),
+);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.json());
