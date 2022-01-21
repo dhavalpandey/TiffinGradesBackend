@@ -23,6 +23,14 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+
+  adjectives: {
+    type: Object,
+    required: false,
+    default: {
+      null: true,
+    },
+  },
 });
 
 const User = mongoose.model("User", UserSchema);
