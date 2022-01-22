@@ -31,6 +31,18 @@ const UserSchema = new mongoose.Schema({
       null: true,
     },
   },
+  options: {
+    type: Object,
+    required: false,
+    default: {
+      null: true,
+    },
+  },
+  topThreeSubjects: {
+    type: String,
+    required: false,
+    default: "na, na, na",
+  },
 });
 
 const User = mongoose.model("User", UserSchema);

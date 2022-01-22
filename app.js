@@ -15,8 +15,6 @@ const User = require("./User");
 const connectDB = require("./db");
 connectDB();
 
-//https://tiffingrades.netlify.app
-
 app.use(
   cors({
     origin: ["https://tiffingrades.netlify.app", "http://localhost:3000"],
@@ -69,6 +67,34 @@ app.post("/adjectives", async (req, res) => {
       if (err) {
         return res.status(500).json({ status: "ERR", message: err });
       } else {
+        return res
+          .status(200)
+          .json({ status: "OK", message: "Upload complete!" });
+      }
+    },
+  );
+});
+
+app.post("/options", async (req, res) => {
+  const { googleId, data, topThreeSubjects } = req.body;
+  User.findOneAndUpdate(
+    { googleId: googleId },
+    { options: data },
+    function (err, result) {
+      if (err) {
+        return res.status(500).json({ status: "ERR", message: err });
+      } else {
+        User.findOneAndUpdate(
+          { googleId: googleId },
+          { topThreeSubjects: topThreeSubjects },
+          (err, result) => {
+            if (err) {
+              return res.status(500);
+            } else {
+              return res.status(200);
+            }
+          },
+        );
         return res
           .status(200)
           .json({ status: "OK", message: "Upload complete!" });
