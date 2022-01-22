@@ -19,7 +19,7 @@ connectDB();
 
 app.use(
   cors({
-    origin: "https://tiffingrades.netlify.app",
+    origin: ["https://tiffingrades.netlify.app", "http://localhost:3000"],
   }),
 );
 app.use(bodyParser.json());
