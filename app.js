@@ -103,4 +103,15 @@ app.post("/options", async (req, res) => {
   );
 });
 
+app.post("/results", async (req, res) => {
+  const { googleId } = req.body;
+  User.findOne({ googleId: googleId }, (err, result) => {
+    if (err) {
+      return res.status(500).json({ status: "ERR", message: err });
+    } else {
+      return res.status(200).json({ status: "OK", data: result.options });
+    }
+  });
+});
+
 app.listen(PORT, console.log(`Server running at port ${PORT}`));
