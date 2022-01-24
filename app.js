@@ -149,6 +149,21 @@ app.post("/options", async (req, res) => {
   );
 });
 
+app.post("/subject-ranking", async (req, res) => {
+  let arr = [];
+  Subject.find({}, (err, result) => {
+    if (err) {
+      return res.status(500).json({ status: "ERR", message: err });
+    } else {
+      for (let i = 0; i < 10; ++i) {
+        arr.push(result[i].subject);
+        arr.push(result[i].points);
+      }
+      return res.status(200).json({ status: "OK", data: arr });
+    }
+  });
+});
+
 app.post("/results", async (req, res) => {
   const { googleId } = req.body;
   User.findOne({ googleId: googleId }, (err, result) => {
