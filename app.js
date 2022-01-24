@@ -12,6 +12,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 
 const User = require("./User");
+const Subject = require("./Subject");
 const connectDB = require("./db");
 connectDB();
 
@@ -77,10 +78,13 @@ app.post("/adjectives", async (req, res) => {
 
 app.post("/options", async (req, res) => {
   const { googleId, data, topThreeSubjects } = req.body;
+  let numberOfUpdates;
+  let points;
+
   User.findOneAndUpdate(
     { googleId: googleId },
     { options: data },
-    function (err, result) {
+    (err, result) => {
       if (err) {
         return res.status(500).json({ status: "ERR", message: err });
       } else {
@@ -95,6 +99,48 @@ app.post("/options", async (req, res) => {
             }
           },
         );
+
+        for (const key in data) {
+          if (data.hasOwnProperty(key)) {
+            Subject.findOne({ subject: key }, (err, result) => {
+              if (err) {
+                return res.status(500);
+                console.log(err);
+              } else {
+                numberOfUpdates = result.numberOfUpdates;
+                points = result.points;
+
+                Subject.findOneAndUpdate(
+                  { subject: key },
+                  { points: points + data[key] },
+                  (err, result) => {
+                    if (err) {
+                      console.log(err);
+                      return res.status(500);
+                    } else {
+                      return res.status(200);
+                    }
+                  },
+                );
+
+                Subject.findOneAndUpdate(
+                  { subject: key },
+                  { numberOfUpdates: numberOfUpdates + 1 },
+                  (err, result) => {
+                    if (err) {
+                      console.log(err);
+                      return res.status(500);
+                    } else {
+                      return res.status(200);
+                    }
+                  },
+                );
+                return res.status(200);
+              }
+            });
+          }
+        }
+
         return res
           .status(200)
           .json({ status: "OK", message: "Upload complete!" });
