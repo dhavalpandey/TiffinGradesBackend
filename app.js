@@ -107,12 +107,12 @@ app.post("/options", async (req, res) => {
                 return res.status(500);
                 console.log(err);
               } else {
-                numberOfUpdates = result.numberOfUpdates;
+                numberOfUpdates = result.numberOfUpdates + 1;
                 points = result.points;
 
                 Subject.findOneAndUpdate(
                   { subject: key },
-                  { points: points + data[key] },
+                  { points: (points + data[key])/numberOfUpdates},
                   (err, result) => {
                     if (err) {
                       console.log(err);
@@ -125,7 +125,7 @@ app.post("/options", async (req, res) => {
 
                 Subject.findOneAndUpdate(
                   { subject: key },
-                  { numberOfUpdates: numberOfUpdates + 1 },
+                  { numberOfUpdates: numberOfUpdates},
                   (err, result) => {
                     if (err) {
                       console.log(err);
