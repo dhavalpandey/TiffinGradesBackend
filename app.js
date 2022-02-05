@@ -13,6 +13,7 @@ const cors = require("cors");
 
 const User = require("./User");
 const Subject = require("./Subject");
+const Meet = require("./Meet");
 const connectDB = require("./db");
 connectDB();
 
@@ -171,6 +172,30 @@ app.post("/results", async (req, res) => {
       return res.status(500).json({ status: "ERR", message: err });
     } else {
       return res.status(200).json({ status: "OK", data: result.options });
+    }
+  });
+});
+
+app.post("/meet", async (req, res) => {
+  const { link, subject, meetName, name, googleId } = req.body;
+  User.findOne({ googleId: googleId }, (err, result) => {
+    if (err) {
+      return res.status(500).json({ status: "ERR", message: err });
+    } else {
+      Meet.create(
+        {
+          link,
+          subject,
+          meetName,
+          creatorName: name,
+          creatorGoogleId: googleId,
+          createdAt: Date.now(),
+        },
+        (err, result) => {
+          if (err) return handleError(err);
+        },
+      );
+      return res.status(200).json({ status: "OK" });
     }
   });
 });
