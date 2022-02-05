@@ -112,7 +112,7 @@ app.post("/options", async (req, res) => {
 
                 Subject.findOneAndUpdate(
                   { subject: key },
-                  { points: points + data[key] },
+                  { points: Math.round(points + data[key]) },
                   (err, result) => {
                     if (err) {
                       console.log(err);
