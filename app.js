@@ -177,7 +177,8 @@ app.post("/results", async (req, res) => {
 });
 
 app.post("/meet", async (req, res) => {
-  const { link, subject, meetName, name, googleId } = req.body;
+  const { link, subject, meetName, name, googleId, createdAt, expiringAt } =
+    req.body;
   User.findOne({ googleId: googleId }, (err, result) => {
     if (err) {
       return res.status(500).json({ status: "ERR", message: err });
@@ -188,14 +189,31 @@ app.post("/meet", async (req, res) => {
           subject,
           meetName,
           creatorName: name,
-          creatorGoogleId: googleId,
-          createdAt: Date.now(),
+          createdAt,
+          expiringAt,
         },
         (err, result) => {
-          if (err) return handleError(err);
+          if (err) throw err;
         },
       );
       return res.status(200).json({ status: "OK" });
+    }
+  });
+});
+
+app.post("/get-meets", async (req, res) => {
+  const { googleId } = req.body;
+  User.findOne({ googleId: googleId }, (err, result) => {
+    if (err) {
+      return res.status(500).json({ status: "ERR", message: err });
+    } else {
+      Meet.find({}, (err, result) => {
+        if (err) {
+          return res.status(500).json({ status: "ERR", message: err });
+        } else {
+          res.status(200).json({ status: "OK", data: result });
+        }
+      });
     }
   });
 });

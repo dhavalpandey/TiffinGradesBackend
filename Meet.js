@@ -17,13 +17,13 @@ const MeetSchema = new mongoose.Schema({
     required: true,
     type: String,
   },
-  creatorGoogleId: {
-    required: true,
-    type: String,
-  },
   createdAt: {
     required: true,
-    type: Date,
+    type: Number,
+  },
+  expiringAt: {
+    required: true,
+    type: Number,
   },
 });
 
