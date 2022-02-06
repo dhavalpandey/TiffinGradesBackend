@@ -17,6 +17,7 @@ const Meet = require("./Meet");
 const connectDB = require("./db");
 connectDB();
 
+//cors
 app.use(
   cors({
     origin: ["https://tiffingrades.netlify.app", "http://localhost:3000"],
