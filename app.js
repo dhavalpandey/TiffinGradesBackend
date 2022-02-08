@@ -27,9 +27,28 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.json());
 
+//Functions
+const removeMeets = () => {
+  Meet.find({}, (err, result) => {
+    for (let i = 0; i < result.length; ++i) {
+      if (result[i].expiringAt < Date.now()) {
+        Meet.remove({ _id: result[i]._id }, (err) => {
+          if (!err) {
+            console.log("Successfully removed a Meet");
+          } else {
+            console.log("There was an error.");
+          }
+        });
+      }
+    }
+  });
+};
+
 //Routes
 app.post("/signup", (req, res) => {
   const { googleId, email, fullName, firstName, imageUrl } = req.body;
+
+  removeMeets();
 
   User.findOne({ googleId: googleId }).then((user) => {
     if (user) {
@@ -63,6 +82,9 @@ app.post("/signup", (req, res) => {
 
 app.post("/adjectives", async (req, res) => {
   const { googleId, state } = req.body;
+
+  removeMeets();
+
   User.findOneAndUpdate(
     { googleId: googleId },
     { adjectives: state },
@@ -82,6 +104,8 @@ app.post("/options", async (req, res) => {
   const { googleId, data, topThreeSubjects, hasSubmittedOptions } = req.body;
   let numberOfUpdates;
   let points;
+
+  removeMeets();
 
   if (hasSubmittedOptions == "true") {
     User.findOneAndUpdate(
@@ -176,6 +200,9 @@ app.post("/options", async (req, res) => {
 
 app.post("/subject-ranking", async (req, res) => {
   let arr = [];
+
+  removeMeets();
+
   Subject.find({}, (err, result) => {
     if (err) {
       return res.status(500).json({ status: "ERR", message: err });
@@ -191,6 +218,9 @@ app.post("/subject-ranking", async (req, res) => {
 
 app.post("/results", async (req, res) => {
   const { googleId } = req.body;
+
+  removeMeets();
+
   User.findOne({ googleId: googleId }, (err, result) => {
     if (err) {
       return res.status(500).json({ status: "ERR", message: err });
@@ -211,6 +241,9 @@ app.post("/meet", async (req, res) => {
     expiringAt,
     profilePicture,
   } = req.body;
+
+  removeMeets();
+
   User.findOne({ googleId: googleId }, (err, result) => {
     if (err) {
       return res.status(500).json({ status: "ERR", message: err });
@@ -236,6 +269,7 @@ app.post("/meet", async (req, res) => {
 
 app.post("/get-meets", async (req, res) => {
   const { googleId } = req.body;
+  removeMeets();
   User.findOne({ googleId: googleId }, (err, result) => {
     if (err) {
       return res.status(500).json({ status: "ERR", message: err });
