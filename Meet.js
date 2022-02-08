@@ -25,6 +25,10 @@ const MeetSchema = new mongoose.Schema({
     required: true,
     type: Number,
   },
+  profilePicture: {
+    required: true,
+    type: String,
+  },
 });
 
 const Meet = mongoose.model("Meet", MeetSchema);

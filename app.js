@@ -79,76 +79,99 @@ app.post("/adjectives", async (req, res) => {
 });
 
 app.post("/options", async (req, res) => {
-  const { googleId, data, topThreeSubjects } = req.body;
+  const { googleId, data, topThreeSubjects, hasSubmittedOptions } = req.body;
   let numberOfUpdates;
   let points;
 
-  User.findOneAndUpdate(
-    { googleId: googleId },
-    { options: data },
-    (err, result) => {
-      if (err) {
-        return res.status(500).json({ status: "ERR", message: err });
-      } else {
-        User.findOneAndUpdate(
-          { googleId: googleId },
-          { topThreeSubjects: topThreeSubjects },
-          (err, result) => {
-            if (err) {
-              return res.status(500);
-            } else {
-              return res.status(200);
-            }
-          },
-        );
-
-        for (const key in data) {
-          if (data.hasOwnProperty(key)) {
-            Subject.findOne({ subject: key }, (err, result) => {
+  if (hasSubmittedOptions == "true") {
+    User.findOneAndUpdate(
+      { googleId: googleId },
+      { options: data },
+      (err, result) => {
+        if (err) {
+          return res.status(500).json({ status: "ERR", message: err });
+        } else {
+          User.findOneAndUpdate(
+            { googleId: googleId },
+            { topThreeSubjects: topThreeSubjects },
+            (err, result) => {
               if (err) {
                 return res.status(500);
-                console.log(err);
               } else {
-                numberOfUpdates = result.numberOfUpdates + 1;
-                points = result.points;
-
-                Subject.findOneAndUpdate(
-                  { subject: key },
-                  { points: Math.round((points + data[key]) / 2) },
-                  (err, result) => {
-                    if (err) {
-                      console.log(err);
-                      return res.status(500);
-                    } else {
-                      return res.status(200);
-                    }
-                  },
-                );
-
-                Subject.findOneAndUpdate(
-                  { subject: key },
-                  { numberOfUpdates: numberOfUpdates },
-                  (err, result) => {
-                    if (err) {
-                      console.log(err);
-                      return res.status(500);
-                    } else {
-                      return res.status(200);
-                    }
-                  },
-                );
+                res.status(200).json({ status: "ERR", message: err });
+              }
+            },
+          );
+        }
+      },
+    );
+  } else {
+    User.findOneAndUpdate(
+      { googleId: googleId },
+      { options: data },
+      (err, result) => {
+        if (err) {
+          return res.status(500).json({ status: "ERR", message: err });
+        } else {
+          User.findOneAndUpdate(
+            { googleId: googleId },
+            { topThreeSubjects: topThreeSubjects },
+            (err, result) => {
+              if (err) {
+                return res.status(500);
+              } else {
                 return res.status(200);
               }
-            });
-          }
-        }
+            },
+          );
 
-        return res
-          .status(200)
-          .json({ status: "OK", message: "Upload complete!" });
-      }
-    },
-  );
+          for (const key in data) {
+            if (data.hasOwnProperty(key)) {
+              Subject.findOne({ subject: key }, (err, result) => {
+                if (err) {
+                  return res.status(500);
+                } else {
+                  numberOfUpdates = result.numberOfUpdates + 1;
+                  points = result.points;
+
+                  Subject.findOneAndUpdate(
+                    { subject: key },
+                    { points: Math.round((points + data[key]) / 2) },
+                    (err, result) => {
+                      if (err) {
+                        console.log(err);
+                        return res.status(500);
+                      } else {
+                        return res.status(200);
+                      }
+                    },
+                  );
+
+                  Subject.findOneAndUpdate(
+                    { subject: key },
+                    { numberOfUpdates: numberOfUpdates },
+                    (err, result) => {
+                      if (err) {
+                        console.log(err);
+                        return res.status(500);
+                      } else {
+                        return res.status(200);
+                      }
+                    },
+                  );
+                  return res.status(200);
+                }
+              });
+            }
+          }
+
+          return res
+            .status(200)
+            .json({ status: "OK", message: "Upload complete!" });
+        }
+      },
+    );
+  }
 });
 
 app.post("/subject-ranking", async (req, res) => {
@@ -178,8 +201,16 @@ app.post("/results", async (req, res) => {
 });
 
 app.post("/meet", async (req, res) => {
-  const { link, subject, meetName, name, googleId, createdAt, expiringAt } =
-    req.body;
+  const {
+    link,
+    subject,
+    meetName,
+    name,
+    googleId,
+    createdAt,
+    expiringAt,
+    profilePicture,
+  } = req.body;
   User.findOne({ googleId: googleId }, (err, result) => {
     if (err) {
       return res.status(500).json({ status: "ERR", message: err });
@@ -192,6 +223,7 @@ app.post("/meet", async (req, res) => {
           creatorName: name,
           createdAt,
           expiringAt,
+          profilePicture,
         },
         (err, result) => {
           if (err) throw err;
