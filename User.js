@@ -43,6 +43,15 @@ const UserSchema = new mongoose.Schema({
     required: false,
     default: "na, na, na",
   },
+  hasSubmittedAdjectives: {
+    type: String,
+    required: false,
+    default: "No",
+  },
+  yearGroup: {
+    type: Number,
+    required: false,
+  },
 });
 
 const User = mongoose.model("User", UserSchema);

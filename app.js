@@ -79,18 +79,40 @@ app.post("/signup", (req, res) => {
 });
 
 app.post("/adjectives", async (req, res) => {
-  const { googleId, state } = req.body;
+  const { googleId, state, yearGroup } = req.body;
 
   User.findOneAndUpdate(
     { googleId: googleId },
     { adjectives: state },
-    function (err, result) {
+    (err, result) => {
       if (err) {
         return res.status(500).json({ status: "ERR", message: err });
       } else {
-        return res
-          .status(200)
-          .json({ status: "OK", message: "Upload complete!" });
+        User.findOneAndUpdate(
+          { googleId: googleId },
+          { hasSubmittedAdjectives: "Yes" },
+          (err, result) => {
+            if (err) {
+              return res.status(500).json({ status: "ERR", message: err });
+            } else {
+              User.findOneAndUpdate(
+                { googleId: googleId },
+                { yearGroup: yearGroup },
+                (err, result) => {
+                  if (err) {
+                    return res
+                      .status(500)
+                      .json({ status: "ERR", message: err });
+                  } else {
+                    return res
+                      .status(200)
+                      .json({ status: "OK", message: "Signup Complete!" });
+                  }
+                },
+              );
+            }
+          },
+        );
       }
     },
   );
