@@ -10,6 +10,8 @@ const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const http = require("http");
+const { Server } = require("socket.io");
 
 const User = require("./User");
 const Subject = require("./Subject");
@@ -26,6 +28,8 @@ app.use(
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.json());
+
+const server = http.createServer(app);
 
 //Functions
 const removeMeets = () => {
@@ -299,4 +303,26 @@ app.post("/get-meets", async (req, res) => {
   });
 });
 
-app.listen(PORT, console.log(`Server running at port ${PORT}`));
+//Discussions (powered by Socket.io)
+const io = new Server(server, {
+  cors: {
+    origin: ["https://tiffingrades.netlify.app", "http://localhost:3000"],
+    methods: ["GET", "POST"],
+  },
+});
+
+io.on("connection", (socket) => {
+  socket.on("join-room", (data) => {
+    socket.join(data);
+  });
+
+  socket.on("send-message", (data) => {
+    socket.to(data.room).emit("receive-message", data);
+  });
+
+  socket.on("disconnect", () => {
+    let disconnect = true;
+  });
+});
+
+server.listen(PORT, console.log(`Server running at port ${PORT}`));
