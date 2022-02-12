@@ -22,7 +22,11 @@ connectDB();
 //cors
 app.use(
   cors({
-    origin: ["https://tiffingrades.netlify.app", "http://localhost:3000"],
+    origin: [
+      "https://tiffingrades.netlify.app",
+      "http://localhost:3000",
+      "http://localhost:5000",
+    ],
   }),
 );
 app.use(bodyParser.json());
@@ -306,7 +310,11 @@ app.post("/get-meets", async (req, res) => {
 //Discussions (powered by Socket.io)
 const io = new Server(server, {
   cors: {
-    origin: ["https://tiffingrades.netlify.app", "http://localhost:3000"],
+    origin: [
+      "https://tiffingrades.netlify.app",
+      "http://localhost:3000",
+      "http://localhost:5000",
+    ],
     methods: ["GET", "POST"],
   },
 });
