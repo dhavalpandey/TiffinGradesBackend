@@ -16,6 +16,7 @@ const { Server } = require("socket.io");
 const User = require("./User");
 const Subject = require("./Subject");
 const Meet = require("./Meet");
+const Discussion = require("./Discussion");
 const connectDB = require("./db");
 connectDB();
 
@@ -330,6 +331,45 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     let disconnect = true;
+  });
+});
+
+app.post("/discussion", async (req, res) => {
+  const { googleId, name, link } = req.body;
+
+  User.findOne({ googleId: googleId }, (err, result) => {
+    if (err) {
+      return res.status(500).json({ status: "ERR", message: err });
+    } else {
+      Discussion.create(
+        {
+          link,
+          discussionName: name,
+        },
+        (err, result) => {
+          if (err) throw err;
+        },
+      );
+      return res.status(200).json({ status: "OK" });
+    }
+  });
+});
+
+app.post("/get-discussions", async (req, res) => {
+  const { googleId } = req.body;
+
+  User.findOne({ googleId: googleId }, (err, result) => {
+    if (err) {
+      return res.status(500).json({ status: "ERR", message: err });
+    } else {
+      Discussion.find({}, (err, result) => {
+        if (err) {
+          return res.status(500).json({ status: "ERR", message: err });
+        } else {
+          res.status(200).json({ status: "OK", data: result });
+        }
+      });
+    }
   });
 });
 
