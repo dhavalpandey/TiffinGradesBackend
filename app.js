@@ -16,7 +16,7 @@ const { Server } = require("socket.io");
 const User = require("./User");
 const Subject = require("./Subject");
 const Meet = require("./Meet");
-const Discussion = require("./Discussion.js");
+const Discussion = require("./Discussion");
 const connectDB = require("./db");
 connectDB();
 
