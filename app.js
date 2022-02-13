@@ -308,32 +308,6 @@ app.post("/get-meets", async (req, res) => {
   });
 });
 
-//Discussions (powered by Socket.io)
-const io = new Server(server, {
-  cors: {
-    origin: [
-      "https://tiffingrades.netlify.app",
-      "http://localhost:3000",
-      "http://localhost:5000",
-    ],
-    methods: ["GET", "POST"],
-  },
-});
-
-io.on("connection", (socket) => {
-  socket.on("join-room", (data) => {
-    socket.join(data);
-  });
-
-  socket.on("send-message", (data) => {
-    socket.to(data.room).emit("receive-message", data);
-  });
-
-  socket.on("disconnect", () => {
-    let disconnect = true;
-  });
-});
-
 app.post("/discussion", async (req, res) => {
   const { googleId, name, link } = req.body;
 
@@ -370,6 +344,32 @@ app.post("/get-discussions", async (req, res) => {
         }
       });
     }
+  });
+});
+
+//Discussions (powered by Socket.io)
+const io = new Server(server, {
+  cors: {
+    origin: [
+      "https://tiffingrades.netlify.app",
+      "http://localhost:3000",
+      "http://localhost:5000",
+    ],
+    methods: ["GET", "POST"],
+  },
+});
+
+io.on("connection", (socket) => {
+  socket.on("join-room", (data) => {
+    socket.join(data);
+  });
+
+  socket.on("send-message", (data) => {
+    socket.to(data.room).emit("receive-message", data);
+  });
+
+  socket.on("disconnect", () => {
+    let disconnect = true;
   });
 });
 
