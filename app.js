@@ -12,6 +12,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
+const nodemailer = require("nodemailer");
 
 const User = require("./User");
 const Subject = require("./Subject");
@@ -49,12 +50,41 @@ const removeMeets = () => {
   });
 };
 
+const sendEmail = (to, name) => {
+  const transporter = nodemailer.createTransport({
+    host: "smtp-mail.outlook.com",
+    secureConnection: false,
+    port: 587,
+    tls: {
+      ciphers: "SSLv3",
+    },
+    auth: {
+      user: process.env.OUTLOOK_EMAIL,
+      pass: process.env.OUTLOOK_PASSWORD,
+    },
+  });
+
+  const mailOptions = {
+    from: "6060@tiffin.kingston.sch.uk",
+    to: to,
+    subject: name + ", welcome to a world of wonders.",
+    html: "<h1>Welcome to Tiffin Planner!</h1><p>Your account has been successful registered.</p><br></br><b><i>Thank you, Dhaval. </b></i>",
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      return console.log(error);
+    }
+  });
+};
+
 //Routes
 app.post("/signup", (req, res) => {
   const { googleId, email, fullName, firstName, imageUrl } = req.body;
 
   User.findOne({ googleId: googleId }).then((user) => {
     if (user) {
+      sendEmail(email, firstName);
       return res
         .status(200)
         .json({ status: "OK", message: "Login successful!" });
@@ -69,6 +99,7 @@ app.post("/signup", (req, res) => {
       newUser
         .save()
         .then((user) => {
+          sendEmail(email, firstName);
           return res
             .status(200)
             .json({ status: "OK", message: "Login successful!" });
