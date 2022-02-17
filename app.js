@@ -7,21 +7,66 @@ const PORT = process.env.PORT || 5000;
 
 //Libraries
 const express = require("express");
-const app = express();
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
 const nodemailer = require("nodemailer");
+const { ApolloServer, gql } = require("apollo-server-express");
+const {
+  ApolloServerPluginLandingPageLocalDefault,
+  ApolloServerPluginLandingPageProductionDefault,
+} = require("apollo-server-core");
 
 const User = require("./User");
 const Subject = require("./Subject");
 const Meet = require("./Meet");
 const Discussion = require("./Discussion");
+
+//Graph QL
+const typeDefs = gql`
+  type Query {
+    hello: String!
+  }
+`;
+
+const resolvers = {
+  Query: {
+    hello: () => "hello",
+  },
+};
+
+//Server Configuration
+const app = express();
+
+let apolloServer = null;
+const startServer = async () => {
+  apolloServer = new ApolloServer({
+    typeDefs,
+    resolvers,
+    introspection: true,
+    playground: true,
+    plugins: [
+      process.env.NODE_ENV === "production"
+        ? ApolloServerPluginLandingPageProductionDefault({
+            graphRef: "my-graph-id@my-graph-variant",
+            footer: false,
+          })
+        : ApolloServerPluginLandingPageLocalDefault({ footer: false }),
+    ],
+  });
+  await apolloServer.start();
+  apolloServer.applyMiddleware({ app });
+};
+startServer();
+
+const server = http.createServer(app);
+
+//DataBase Connection
 const connectDB = require("./db");
 connectDB();
 
-//cors
+//Middleware
 app.use(
   cors({
     origin: ["https://tiffingrades.netlify.app", "http://localhost:3000"],
@@ -30,8 +75,6 @@ app.use(
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.json());
-
-const server = http.createServer(app);
 
 //Functions
 const removeMeets = () => {
@@ -335,6 +378,28 @@ app.post("/get-meets", async (req, res) => {
   });
 });
 
+//Discussions (powered by Socket.io)
+const io = new Server(server, {
+  cors: {
+    origin: ["https://tiffingrades.netlify.app", "http://localhost:3000"],
+    methods: ["GET", "POST"],
+  },
+});
+
+io.on("connection", (socket) => {
+  socket.on("join-room", (data) => {
+    socket.join(data);
+  });
+
+  socket.on("send-message", (data) => {
+    socket.to(data.room).emit("receive-message", data);
+  });
+
+  socket.on("disconnect", () => {
+    let disconnect = true;
+  });
+});
+
 app.post("/discussion", async (req, res) => {
   const { googleId, name, link } = req.body;
 
@@ -371,28 +436,6 @@ app.post("/get-discussions", async (req, res) => {
         }
       });
     }
-  });
-});
-
-//Discussions (powered by Socket.io)
-const io = new Server(server, {
-  cors: {
-    origin: ["https://tiffingrades.netlify.app", "http://localhost:3000"],
-    methods: ["GET", "POST"],
-  },
-});
-
-io.on("connection", (socket) => {
-  socket.on("join-room", (data) => {
-    socket.join(data);
-  });
-
-  socket.on("send-message", (data) => {
-    socket.to(data.room).emit("receive-message", data);
-  });
-
-  socket.on("disconnect", () => {
-    let disconnect = true;
   });
 });
 
