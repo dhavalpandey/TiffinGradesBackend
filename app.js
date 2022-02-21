@@ -7,6 +7,7 @@ const PORT = process.env.PORT || 5000;
 
 //Libraries
 const express = require("express");
+const fetch = require("node-fetch");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const http = require("http");
@@ -22,6 +23,7 @@ const User = require("./User");
 const Subject = require("./Subject");
 const Meet = require("./Meet");
 const Discussion = require("./Discussion");
+const DiscussionUsers = require("./DiscussionUsers");
 
 //Graph QL
 const typeDefs = gql`
@@ -64,6 +66,7 @@ const server = http.createServer(app);
 
 //DataBase Connection
 const connectDB = require("./db");
+const { syncBuiltinESMExports } = require("module");
 connectDB();
 
 //Middleware
@@ -117,6 +120,55 @@ const sendEmail = (to, name) => {
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
       return console.log(error);
+    }
+  });
+};
+
+const getUsers = (data) => {
+  DiscussionUsers.findOne({ discussionName: data.chatRoom }, (err, result) => {
+    if (!result.users) return console.log("No page found");
+    let dupelicate = 0;
+    if (!result.users) {
+      DiscussionUsers.findOneAndUpdate(
+        { discussionName: data.chatRoom },
+        {
+          $push: {
+            users: {
+              name: data.name,
+              googleId: data.googleId,
+            },
+          },
+        },
+        (err, result) => {
+          if (err) {
+            console.error(err);
+          }
+        },
+      );
+    } else {
+      for (let i = 0; i < result.users.length; i++) {
+        if (result.users[i].googleId !== data.googleId) {
+          dupelicate++;
+        }
+      }
+      if (!dupelicate > 0) {
+        DiscussionUsers.findOneAndUpdate(
+          { discussionName: data.chatRoom },
+          {
+            $push: {
+              users: {
+                name: data.name,
+                googleId: data.googleId,
+              },
+            },
+          },
+          (err, result) => {
+            if (err) {
+              console.error(err);
+            }
+          },
+        );
+      }
     }
   });
 };
@@ -386,17 +438,19 @@ const io = new Server(server, {
   },
 });
 
-io.on("connection", (socket) => {
-  socket.on("join-room", (data) => {
-    socket.join(data);
+let number = 0;
+io.on("connection", async (socket) => {
+  await socket.on("join-room", (data) => {
+    socket.join(data.chatRoom);
+    socket.to(data.chatRoom).emit("new-user", data);
   });
 
-  socket.on("send-message", (data) => {
+  await socket.on("send-message", (data) => {
     socket.to(data.room).emit("receive-message", data);
   });
 
-  socket.on("disconnect", () => {
-    let disconnect = true;
+  await socket.on("disconnect", (data) => {
+    socket.to(data.chatRoom).emit("disconnect-user", data);
   });
 });
 
@@ -435,6 +489,46 @@ app.post("/get-discussions", async (req, res) => {
           res.status(200).json({ status: "OK", data: result });
         }
       });
+    }
+  });
+});
+
+app.post("/discuss-add", async (req, res) => {
+  const { googleId, name, discussionName } = req.body;
+  User.findOne({ googleId: googleId }, (err, result) => {
+    if (err) {
+      return res.status(500).json({ status: "ERR", message: err });
+    } else {
+      DiscussionUsers.findOne(
+        { discussionName: discussionName },
+        (err, result) => {
+          let dupelicate = 0;
+          for (let i = 0; i < result.users.length; i++) {
+            if (result.users[i].googleId !== googleId) {
+              dupelicate++;
+            }
+          }
+          if (!dupelicate > 0) {
+            DiscussionUsers.findOneAndUpdate(
+              { discussionName: discussionName },
+              {
+                $push: {
+                  users: {
+                    name: name,
+                    googleId: googleId,
+                  },
+                },
+              },
+              (err, result) => {
+                if (err) {
+                  return res.status(500).json({ status: "ERR", message: err });
+                }
+              },
+            );
+          }
+        },
+      );
+      return res.status(200).json({ status: "OK" });
     }
   });
 });
