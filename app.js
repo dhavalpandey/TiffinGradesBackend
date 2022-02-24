@@ -7,7 +7,6 @@ const PORT = process.env.PORT || 5000;
 
 //Libraries
 const express = require("express");
-const fetch = require("node-fetch");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const http = require("http");
@@ -432,6 +431,7 @@ app.post("/get-meets", async (req, res) => {
 
 //Discussions (powered by Socket.io)
 const io = new Server(server, {
+  wsEngine: require("eiows").Server,
   cors: {
     origin: ["https://tiffingrades.netlify.app", "http://localhost:3000"],
     methods: ["GET", "POST"],
