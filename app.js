@@ -60,7 +60,7 @@ const server = http.createServer(app);
 //Rate Limit
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minutes
-  max: 30, // Limit each IP to 30 requests per `window` (here, per 1 minutes)
+  max: 500, // Limit each IP to 500 requests per `window` (here, per 1 minutes)
   standardHeaders: true,
   legacyHeaders: false,
 });
