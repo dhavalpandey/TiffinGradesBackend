@@ -28,38 +28,31 @@ const DiscussionUsers = require("./DiscussionUsers");
 //Graph QL
 const typeDefs = gql`
   type Query {
-    hello: String!
+    hello: String
   }
 `;
 
 const resolvers = {
   Query: {
-    hello: () => "hello",
+    hello: () => {
+      return "hey";
+    },
   },
 };
 
-//Server Configuration
+//Server Creation
 const app = express();
-
-let apolloServer = null;
 const startServer = async () => {
-  apolloServer = new ApolloServer({
+  const apolloServer = new ApolloServer({
     typeDefs,
     resolvers,
-    introspection: true,
-    playground: true,
-    plugins: [
-      process.env.NODE_ENV === "production"
-        ? ApolloServerPluginLandingPageProductionDefault({
-            graphRef: "my-graph-id@my-graph-variant",
-            footer: false,
-          })
-        : ApolloServerPluginLandingPageLocalDefault({ footer: false }),
-    ],
   });
+
   await apolloServer.start();
-  apolloServer.applyMiddleware({ app });
+
+  apolloServer.applyMiddleware({ app: app });
 };
+
 startServer();
 
 const server = http.createServer(app);
@@ -545,6 +538,11 @@ app.post("/discuss-add", async (req, res) => {
       return res.status(200).json({ status: "OK" });
     }
   });
+});
+
+//Redirect to Website
+app.use((req, res, next) => {
+  res.status(308).redirect("https://tiffingrades.netlify.app/");
 });
 
 server.listen(PORT, console.log(`Server running at port ${PORT}`));
