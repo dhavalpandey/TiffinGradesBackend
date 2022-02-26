@@ -113,7 +113,7 @@ const sendEmail = (to, name) => {
     from: "6060@tiffin.kingston.sch.uk",
     to: to,
     subject: name + ", welcome to a world of wonders.",
-    html: "<h1>Welcome to Tiffin Planner!</h1><p>Your account has been successful registered.</p><br></br><b><i>Thank you, Dhaval. </b></i>",
+    html: "<h1>Welcome to Tiffin Planner!</h1><p>Your account has been successful registered.</p><br></br><b><i>Thank you, Dhaval.</p> </b></i>",
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
@@ -438,19 +438,23 @@ const io = new Server(server, {
   },
 });
 
-let number = 0;
 io.on("connection", async (socket) => {
+  const id = socket.id;
   await socket.on("join-room", (data) => {
+    const sendData = {
+      data,
+      id,
+    };
     socket.join(data.chatRoom);
-    socket.to(data.chatRoom).emit("new-user", data);
+    socket.to(data.chatRoom).emit("new-user", sendData);
   });
 
   await socket.on("send-message", (data) => {
     socket.to(data.room).emit("receive-message", data);
   });
 
-  await socket.on("disconnect", (data) => {
-    socket.to(data.chatRoom).emit("disconnect-user", data);
+  await socket.on("disconnect", () => {
+    socket.broadcast.emit("disconnect-user", id);
   });
 });
 
