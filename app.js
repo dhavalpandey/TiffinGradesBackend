@@ -9,6 +9,7 @@ const PORT = process.env.PORT || 5000;
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const rateLimit = require("express-rate-limit");
 const http = require("http");
 const { Server } = require("socket.io");
 const nodemailer = require("nodemailer");
@@ -63,6 +64,14 @@ startServer();
 
 const server = http.createServer(app);
 
+//Rate Limit
+const limiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minutes
+  max: 30, // Limit each IP to 30 requests per `window` (here, per 1 minutes)
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 //DataBase Connection
 const connectDB = require("./db");
 const { syncBuiltinESMExports } = require("module");
@@ -77,6 +86,7 @@ app.use(
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.json());
+app.use(limiter);
 
 //Functions
 const removeMeets = () => {
