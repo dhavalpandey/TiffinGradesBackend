@@ -540,9 +540,24 @@ app.post("/discuss-add", async (req, res) => {
   });
 });
 
-//Redirect to Website
-app.use((req, res, next) => {
-  res.status(308).redirect("https://tiffingrades.netlify.app/");
+app.delete("/delete-account", async (req, res) => {
+  const { googleId, name, profilePicture, yearGroup } = req.body;
+
+  User.findOne({ googleId: googleId }, (err, result) => {
+    if (err) {
+      return res.status(500).json({ status: "ERR", message: err });
+    } else {
+      User.remove({ googleId: googleId }, (err) => {
+        if (!err) {
+          return res
+            .status(200)
+            .json({ status: "OK", message: "Account deleted." });
+        } else {
+          return res.status(500).json({ status: "ERR", message: err });
+        }
+      });
+    }
+  });
 });
 
 server.listen(PORT, console.log(`Server running at port ${PORT}`));
