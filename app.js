@@ -7,6 +7,7 @@ const PORT = process.env.PORT || 5000;
 
 //Libraries
 const express = require("express");
+const apicache = require("apicache");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const rateLimit = require("express-rate-limit");
@@ -56,6 +57,9 @@ const startServer = async () => {
 startServer();
 
 const server = http.createServer(app);
+
+//Cache
+let cache = apicache.middleware;
 
 //Rate Limit
 const limiter = rateLimit({
@@ -347,7 +351,7 @@ app.post("/options", async (req, res) => {
   }
 });
 
-app.post("/subject-ranking", async (req, res) => {
+app.post("/subject-ranking", cache("10 minutes"), async (req, res) => {
   let arr = [];
 
   Subject.find({}, (err, result) => {
@@ -412,7 +416,7 @@ app.post("/meet", async (req, res) => {
   });
 });
 
-app.post("/get-meets", async (req, res) => {
+app.post("/get-meets", cache("1 minute"), async (req, res) => {
   const { googleId } = req.body;
 
   removeMeets();
@@ -482,7 +486,7 @@ app.post("/discussion", async (req, res) => {
   });
 });
 
-app.post("/get-discussions", async (req, res) => {
+app.post("/get-discussions", cache("30 seconds"), async (req, res) => {
   const { googleId } = req.body;
 
   User.findOne({ googleId: googleId }, (err, result) => {
