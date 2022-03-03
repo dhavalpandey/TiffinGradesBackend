@@ -438,7 +438,7 @@ app.post("/get-meets", cache("1 minute"), async (req, res) => {
 
 //Discussions (powered by Socket.io)
 const io = new Server(server, {
-  wsEngine: require("eiows").Server,
+  // wsEngine: require("eiows").Server,
   cors: {
     origin: ["https://tiffingrades.netlify.app", "http://localhost:3000"],
     methods: ["GET", "POST"],
