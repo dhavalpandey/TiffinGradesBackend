@@ -18,7 +18,7 @@
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
     "eiows": "^4.0.0",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "express-rate-limit": "^6.3.0",
     "graphql": "^16.3.0",
     "http": "^0.0.1-security",
